@@ -49,7 +49,7 @@ ipcMain.handle(
   async (_event, messages: { role: 'user' | 'assistant'; content: string }[]) => {
     try {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'ft:gpt-4.1-mini-2025-04-14:personal:clarity-fine-tune:DCVTX26V',
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages]
       })
 
