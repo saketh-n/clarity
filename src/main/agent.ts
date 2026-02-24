@@ -27,11 +27,7 @@ When in doubt, search.
 When you use search results in your response:
 - Integrate the insights naturally into your coaching advice
 - Cite sources inline using [1], [2], etc.
-- At the end of your response, list references in this exact format:
-
-**Sources:**
-[1] Title — URL
-[2] Title — URL`
+- Do NOT include a sources section or list at the end of your response. The app displays sources separately.`
 
 export function createClarityAgent(): ReturnType<typeof createReactAgent> {
   const searchTool = new TavilySearch({

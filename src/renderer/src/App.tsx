@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type Source = {
   title: string
@@ -9,6 +11,20 @@ type Message = {
   role: 'user' | 'assistant'
   content: string
   sources?: Source[]
+}
+
+function prepareCitations(content: string, sources?: Source[]): string {
+  let text = content.replace(/\n\*{0,2}Sources:?\*{0,2}\n(\[\d+\].*\n?)+$/i, '').trimEnd()
+
+  if (sources?.length) {
+    sources.forEach((src, i) => {
+      const citation = `[${i + 1}]`
+      const link = `[\\[${i + 1}\\]](${src.url})`
+      text = text.replaceAll(citation, link)
+    })
+  }
+
+  return text
 }
 
 function App(): JSX.Element {
@@ -92,13 +108,28 @@ function App(): JSX.Element {
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[80%]">
               <div
-                className={`rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-wrap ${
+                className={`rounded-2xl px-4 py-3 leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-amber-warm to-coral text-white rounded-br-md shadow-md'
-                    : 'bg-white text-slate-warm rounded-bl-md shadow-sm border border-cream-dark'
+                    ? 'whitespace-pre-wrap bg-gradient-to-br from-amber-warm to-coral text-white rounded-br-md shadow-md'
+                    : 'bg-white text-slate-warm rounded-bl-md shadow-sm border border-cream-dark prose prose-stone prose-sm max-w-none prose-p:my-1.5 prose-headings:mt-3 prose-headings:mb-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-pre:my-2 prose-blockquote:my-2 prose-a:text-coral prose-a:no-underline hover:prose-a:underline prose-code:text-coral/80 prose-code:before:content-none prose-code:after:content-none'
                 }`}
               >
-                {msg.content}
+                {msg.role === 'user' ? (
+                  msg.content
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ children, href, ...props }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                          {children}
+                        </a>
+                      )
+                    }}
+                  >
+                    {prepareCitations(msg.content, msg.sources)}
+                  </ReactMarkdown>
+                )}
               </div>
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-1.5 px-1 flex flex-wrap gap-1.5">
