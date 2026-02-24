@@ -1,20 +1,32 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react'
 
+type Source = {
+  title: string
+  url: string
+}
+
 type Message = {
   role: 'user' | 'assistant'
   content: string
+  sources?: Source[]
 }
 
 function App(): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    window.api.onStatus((s) => setStatus(s))
+    return () => window.api.offStatus()
+  }, [])
+
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, loading])
+  }, [messages, loading, status])
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
@@ -31,7 +43,14 @@ function App(): JSX.Element {
     try {
       const response = await window.api.sendMessage(updatedMessages)
       if (response.success && response.content) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: response.content! }])
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: response.content!,
+            sources: response.sources
+          }
+        ])
       } else {
         setError(response.error ?? 'Something went wrong. Please try again.')
       }
@@ -39,6 +58,7 @@ function App(): JSX.Element {
       setError('Failed to connect. Please check your setup.')
     } finally {
       setLoading(false)
+      setStatus(null)
     }
   }
 
@@ -70,14 +90,33 @@ function App(): JSX.Element {
 
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-wrap ${
-                msg.role === 'user'
-                  ? 'bg-gradient-to-br from-amber-warm to-coral text-white rounded-br-md shadow-md'
-                  : 'bg-white text-slate-warm rounded-bl-md shadow-sm border border-cream-dark'
-              }`}
-            >
-              {msg.content}
+            <div className="max-w-[80%]">
+              <div
+                className={`rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-wrap ${
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-br from-amber-warm to-coral text-white rounded-br-md shadow-md'
+                    : 'bg-white text-slate-warm rounded-bl-md shadow-sm border border-cream-dark'
+                }`}
+              >
+                {msg.content}
+              </div>
+              {msg.sources && msg.sources.length > 0 && (
+                <div className="mt-1.5 px-1 flex flex-wrap gap-1.5">
+                  {msg.sources.map((src, j) => (
+                    <a
+                      key={j}
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-slate-light hover:text-coral transition-colors bg-cream-dark/40 rounded-lg px-2 py-1"
+                      title={src.title}
+                    >
+                      <span className="font-medium text-coral/70">[{j + 1}]</span>
+                      <span className="truncate max-w-[180px]">{src.title}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -85,10 +124,14 @@ function App(): JSX.Element {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-cream-dark">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-warm animate-bounce" />
-                <span className="w-2 h-2 rounded-full bg-amber-bright animate-bounce [animation-delay:0.15s]" />
-                <span className="w-2 h-2 rounded-full bg-orange-soft animate-bounce [animation-delay:0.3s]" />
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-warm opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-warm" />
+                </span>
+                <span className="text-sm text-slate-light">
+                  {status ?? 'Thinking...'}
+                </span>
               </div>
             </div>
           </div>

@@ -2,15 +2,11 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
-import OpenAI from 'openai'
+import { createClarityAgent, invokeAgent } from './agent'
 
 dotenv.config()
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
-
-const SYSTEM_PROMPT = `You are Clarity, a warm and insightful executive coach. You help leaders think through challenges, develop self-awareness, and take purposeful action. Be concise, ask powerful questions, and offer frameworks when useful. Keep your tone supportive yet direct.`
+const agent = createClarityAgent()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -46,16 +42,15 @@ function createWindow(): void {
 
 ipcMain.handle(
   'chat:send',
-  async (_event, messages: { role: 'user' | 'assistant'; content: string }[]) => {
+  async (event, messages: { role: 'user' | 'assistant'; content: string }[]) => {
     try {
-      const completion = await openai.chat.completions.create({
-        model: 'ft:gpt-4.1-mini-2025-04-14:personal:clarity-fine-tune:DCVTX26V',
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages]
+      const result = await invokeAgent(agent, messages, (status) => {
+        event.sender.send('chat:status', status)
       })
-
       return {
         success: true,
-        content: completion.choices[0]?.message?.content ?? ''
+        content: result.content,
+        sources: result.sources
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error'
