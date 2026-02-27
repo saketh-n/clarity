@@ -18,7 +18,7 @@ export type ChatResponse = {
 declare global {
   interface Window {
     api: {
-      sendMessage: (messages: ChatMessage[]) => Promise<ChatResponse>
+      sendMessage: (messages: ChatMessage[], pdfPaths: string[]) => Promise<ChatResponse>
       onStatus: (callback: (status: string) => void) => void
       offStatus: () => void
       selectPdf: () => Promise<{ name: string; path: string }[]>

@@ -18,8 +18,8 @@ export type ChatResponse = {
 }
 
 const api = {
-  sendMessage: (messages: ChatMessage[]): Promise<ChatResponse> => {
-    return ipcRenderer.invoke('chat:send', messages)
+  sendMessage: (messages: ChatMessage[], pdfPaths: string[]): Promise<ChatResponse> => {
+    return ipcRenderer.invoke('chat:send', messages, pdfPaths)
   },
   onStatus: (callback: (status: string) => void): void => {
     ipcRenderer.on('chat:status', (_event, status: string) => callback(status))

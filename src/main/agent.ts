@@ -2,6 +2,16 @@ import { ChatOpenAI } from '@langchain/openai'
 import { TavilySearch } from '@langchain/tavily'
 import { createReactAgent } from '@langchain/langgraph/prebuilt'
 import { HumanMessage, AIMessage, type BaseMessage } from '@langchain/core/messages'
+import { Annotation, messagesStateReducer, StateGraph, START, END } from '@langchain/langgraph'
+import {
+  MemoryVectorStore,
+  checkAttachments,
+  chunkAndIndex,
+  retrieveContext,
+  augmentPrompt,
+  routeFromCheckAttachments,
+  routeFromRetrieveContext
+} from './rag-nodes'
 
 export type Source = {
   title: string
@@ -12,6 +22,29 @@ export type AgentResponse = {
   content: string
   sources: Source[]
 }
+
+const ClarityState = Annotation.Root({
+  messages: Annotation<BaseMessage[]>({
+    reducer: messagesStateReducer,
+    default: () => []
+  }),
+  uploaded_pdfs: Annotation<string[]>({
+    reducer: (_, b) => b ?? [],
+    default: () => []
+  }),
+  vectorstore: Annotation<MemoryVectorStore | null>({
+    reducer: (_, b) => b ?? null,
+    default: () => null
+  }),
+  retrieved_context: Annotation<string | null>({
+    reducer: (_, b) => b ?? null,
+    default: () => null
+  }),
+  original_prompt: Annotation<string>({
+    reducer: (existing, incoming) => existing || incoming,
+    default: () => ''
+  })
+})
 
 const SYSTEM_PROMPT = `You are Clarity, a concise and high-performance executive coach. You help leaders think through challenges, develop self-awareness, and take purposeful action. Your responses are professional, direct, and actionable. If the user message is disorganized, unclear, or emotionally reactive, ask 2-4 focused clarifying questions before giving advice. If the message is structured and coherent, provide clear, specific, actionable guidance. Avoid fluff, therapy language, and long explanations. Prioritize practical next steps, conversation framing, and specific language the user can use.
 
@@ -61,48 +94,110 @@ export function createClarityAgent(): ReturnType<typeof createReactAgent> {
   })
 }
 
+export function createClarityGraph(reactAgent: ReturnType<typeof createReactAgent>) {
+  async function agentNode(
+    state: typeof ClarityState.State,
+    config?: { configurable?: Record<string, unknown> }
+  ): Promise<Partial<typeof ClarityState.State>> {
+    const onStatus = (config?.configurable?.onStatus as (s: string) => void) ?? (() => {})
+    onStatus('Thinking...')
+
+    const stream = await reactAgent.stream(
+      { messages: state.messages },
+      { streamMode: 'updates' }
+    )
+
+    const allMessages: BaseMessage[] = []
+
+    for await (const chunk of stream) {
+      if ('agent' in chunk) {
+        const msgs: BaseMessage[] = (chunk as Record<string, { messages?: BaseMessage[] }>).agent
+          .messages ?? []
+        for (const msg of msgs) {
+          allMessages.push(msg)
+          const hasToolCalls =
+            'tool_calls' in msg &&
+            Array.isArray(msg.tool_calls) &&
+            msg.tool_calls.length > 0
+          if (hasToolCalls) {
+            onStatus('Searching with Tavily...')
+          }
+        }
+      }
+      if ('tools' in chunk) {
+        const msgs: BaseMessage[] = (chunk as Record<string, { messages?: BaseMessage[] }>).tools
+          .messages ?? []
+        allMessages.push(...msgs)
+        onStatus('Reading results...')
+      }
+    }
+
+    return { messages: allMessages }
+  }
+
+  const graph = new StateGraph(ClarityState)
+    .addNode('check_attachments', checkAttachments)
+    .addNode('chunk_and_index', chunkAndIndex)
+    .addNode('retrieve_context', retrieveContext)
+    .addNode('augment_prompt', augmentPrompt)
+    .addNode('agent', agentNode)
+    .addEdge(START, 'check_attachments')
+    .addConditionalEdges('check_attachments', routeFromCheckAttachments, [
+      'chunk_and_index',
+      'retrieve_context',
+      'agent'
+    ])
+    .addEdge('chunk_and_index', 'retrieve_context')
+    .addConditionalEdges('retrieve_context', routeFromRetrieveContext, [
+      'augment_prompt',
+      'agent'
+    ])
+    .addEdge('augment_prompt', 'agent')
+    .addEdge('agent', END)
+
+  return graph.compile()
+}
+
 export async function invokeAgent(
-  agent: ReturnType<typeof createReactAgent>,
+  graph: ReturnType<typeof createClarityGraph>,
   messages: { role: 'user' | 'assistant'; content: string }[],
+  uploadedPdfs: string[],
   onStatus?: (status: string) => void
 ): Promise<AgentResponse> {
   const langchainMessages: BaseMessage[] = messages.map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content)
   )
 
-  onStatus?.('Thinking...')
+  const lastUserMessage = messages.findLast((m) => m.role === 'user')
 
-  const stream = await agent.stream(
-    { messages: langchainMessages },
-    { streamMode: 'updates' }
+  const stream = await graph.stream(
+    {
+      messages: langchainMessages,
+      uploaded_pdfs: uploadedPdfs,
+      original_prompt: lastUserMessage?.content ?? ''
+    },
+    {
+      streamMode: 'updates',
+      configurable: { onStatus: onStatus ?? (() => {}) }
+    }
   )
 
   const allMessages: BaseMessage[] = []
 
   for await (const chunk of stream) {
     if ('agent' in chunk) {
-      const msgs: BaseMessage[] = chunk.agent.messages ?? []
-      for (const msg of msgs) {
-        allMessages.push(msg)
-        const hasToolCalls =
-          'tool_calls' in msg &&
-          Array.isArray(msg.tool_calls) &&
-          msg.tool_calls.length > 0
-        if (hasToolCalls) {
-          onStatus?.('Searching with Tavily...')
-        }
+      const agentUpdate = (chunk as Record<string, { messages?: BaseMessage[] }>).agent
+      if (agentUpdate.messages) {
+        allMessages.push(...agentUpdate.messages)
       }
-    }
-    if ('tools' in chunk) {
-      const msgs: BaseMessage[] = chunk.tools.messages ?? []
-      allMessages.push(...msgs)
-      onStatus?.('Reading results...')
     }
   }
 
   const lastMessage = allMessages[allMessages.length - 1]
   const content =
-    typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content)
+    typeof lastMessage.content === 'string'
+      ? lastMessage.content
+      : JSON.stringify(lastMessage.content)
 
   const sources: Source[] = []
   for (const msg of allMessages) {

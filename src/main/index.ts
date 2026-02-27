@@ -2,11 +2,12 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
-import { createClarityAgent, invokeAgent } from './agent'
+import { createClarityAgent, createClarityGraph, invokeAgent } from './agent'
 
 dotenv.config()
 
-const agent = createClarityAgent()
+const reactAgent = createClarityAgent()
+const graph = createClarityGraph(reactAgent)
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -42,9 +43,13 @@ function createWindow(): void {
 
 ipcMain.handle(
   'chat:send',
-  async (event, messages: { role: 'user' | 'assistant'; content: string }[]) => {
+  async (
+    event,
+    messages: { role: 'user' | 'assistant'; content: string }[],
+    pdfPaths: string[]
+  ) => {
     try {
-      const result = await invokeAgent(agent, messages, (status) => {
+      const result = await invokeAgent(graph, messages, pdfPaths ?? [], (status) => {
         event.sender.send('chat:status', status)
       })
       return {

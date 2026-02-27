@@ -58,7 +58,10 @@ function App(): JSX.Element {
     setLoading(true)
 
     try {
-      const response = await window.api.sendMessage(updatedMessages)
+      const response = await window.api.sendMessage(
+        updatedMessages,
+        pdfFiles.map((f) => f.path)
+      )
       if (response.success && response.content) {
         setMessages((prev) => [
           ...prev,
