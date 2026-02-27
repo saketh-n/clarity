@@ -26,6 +26,9 @@ const api = {
   },
   offStatus: (): void => {
     ipcRenderer.removeAllListeners('chat:status')
+  },
+  selectPdf: (): Promise<{ name: string; path: string }[]> => {
+    return ipcRenderer.invoke('dialog:openPdf')
   }
 }
 

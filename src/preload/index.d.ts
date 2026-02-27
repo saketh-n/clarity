@@ -21,6 +21,7 @@ declare global {
       sendMessage: (messages: ChatMessage[]) => Promise<ChatResponse>
       onStatus: (callback: (status: string) => void) => void
       offStatus: () => void
+      selectPdf: () => Promise<{ name: string; path: string }[]>
     }
   }
 }

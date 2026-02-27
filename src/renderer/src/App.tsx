@@ -33,6 +33,7 @@ function App(): JSX.Element {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [pdfFiles, setPdfFiles] = useState<{ name: string; path: string }[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -76,6 +77,20 @@ function App(): JSX.Element {
       setLoading(false)
       setStatus(null)
     }
+  }
+
+  const handleAttachPdf = async (): Promise<void> => {
+    const selected = await window.api.selectPdf()
+    if (selected.length === 0) return
+    setPdfFiles((prev) => {
+      const existingPaths = new Set(prev.map((f) => f.path))
+      const newFiles = selected.filter((f) => !existingPaths.has(f.path))
+      return [...prev, ...newFiles]
+    })
+  }
+
+  const removePdf = (path: string): void => {
+    setPdfFiles((prev) => prev.filter((f) => f.path !== path))
   }
 
   return (
@@ -182,27 +197,67 @@ function App(): JSX.Element {
         onSubmit={handleSubmit}
         className="flex-shrink-0 px-6 pb-6 pt-2"
       >
-        <div className="flex gap-3 items-end bg-white rounded-2xl shadow-lg border border-cream-dark p-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSubmit(e)
-              }
-            }}
-            placeholder="Type your thoughts..."
-            rows={1}
-            className="flex-1 resize-none bg-transparent px-3 py-2 text-slate-warm placeholder:text-slate-light focus:outline-none text-base leading-relaxed"
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="flex-shrink-0 bg-gradient-to-r from-amber-warm to-coral text-white rounded-xl px-5 py-2.5 font-medium text-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
-          >
-            Send
-          </button>
+        <div className="bg-white rounded-2xl shadow-lg border border-cream-dark p-2">
+          {pdfFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-2 pt-1 pb-2">
+              {pdfFiles.map((file) => (
+                <span
+                  key={file.path}
+                  className="inline-flex items-center gap-1.5 bg-cream-dark/60 text-slate-warm text-xs font-medium rounded-lg pl-2.5 pr-1.5 py-1.5"
+                >
+                  <svg className="w-3.5 h-3.5 text-coral/70 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                  <span className="truncate max-w-[160px]">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removePdf(file.path)}
+                    className="ml-0.5 p-0.5 rounded-md text-slate-light hover:text-coral hover:bg-cream-dark transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-3 items-end">
+            <button
+              type="button"
+              onClick={handleAttachPdf}
+              className="flex-shrink-0 p-2 text-slate-light hover:text-coral transition-colors rounded-lg hover:bg-cream-dark/40"
+              title="Attach PDF"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSubmit(e)
+                }
+              }}
+              placeholder="Type your thoughts..."
+              rows={1}
+              className="flex-1 resize-none bg-transparent px-3 py-2 text-slate-warm placeholder:text-slate-light focus:outline-none text-base leading-relaxed"
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="flex-shrink-0 bg-gradient-to-r from-amber-warm to-coral text-white rounded-xl px-5 py-2.5 font-medium text-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
+            >
+              Send
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
@@ -58,6 +58,18 @@ ipcMain.handle(
     }
   }
 )
+
+ipcMain.handle('dialog:openPdf', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+  })
+  if (result.canceled) return []
+  return result.filePaths.map((fp) => ({
+    name: fp.split('/').pop() ?? fp,
+    path: fp
+  }))
+})
 
 app.whenReady().then(() => {
   createWindow()
