@@ -8,7 +8,7 @@ import type { DocumentInterface } from '@langchain/core/documents'
 import { HumanMessage, type BaseMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 
-function cosineSimilarity(a: number[], b: number[]): number {
+export function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0
   let normA = 0
   let normB = 0
@@ -71,7 +71,7 @@ export type ClarityState = {
 }
 
 let sessionVectorStore: MemoryVectorStore | null = null
-const indexedPaths = new Set<string>()
+export const indexedPaths = new Set<string>()
 
 function getOnStatus(config?: RunnableConfig): (s: string) => void {
   return (config?.configurable?.onStatus as (s: string) => void) ?? (() => {})
@@ -143,7 +143,7 @@ export async function chunkAndIndex(
   return { vectorstore: sessionVectorStore }
 }
 
-const DOCUMENT_CENTRIC_PATTERN =
+export const DOCUMENT_CENTRIC_PATTERN =
   /this document|the pdf|based on this|in the file|the document|uploaded|attached|from the pdf|in this pdf/i
 
 export async function retrieveContext(
@@ -166,7 +166,7 @@ export async function retrieveContext(
 
   let filtered = results
   if (!isDocCentric) {
-    filtered = results.filter(([, score]) => score >= 0.3)
+    filtered = results.filter(([, score]) => score >= 0.5)
   }
 
   if (filtered.length === 0) {

@@ -1,0 +1,91 @@
+[
+  {
+    "name": "vague_to_specific",
+    "turns": [
+      {
+        "user": "I'm just frustrated with everything at work.",
+        "expect": "clarifying_questions"
+      },
+      {
+        "user": "It's my VP of Engineering — he keeps overriding my decisions in front of the team.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "Can you give me specific language for that conversation?",
+        "expect": "conversation_script"
+      }
+    ]
+  },
+  {
+    "name": "escalating_complexity",
+    "turns": [
+      {
+        "user": "I need to give tough feedback to a senior engineer who's been underperforming.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "They got defensive when I tried last time and accused me of micromanaging.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "What if they escalate to HR?",
+        "expect": "direct_guidance"
+      }
+    ]
+  },
+  {
+    "name": "emotional_to_structured",
+    "turns": [
+      {
+        "user": "I'm completely overwhelmed and I feel like I'm failing at everything.",
+        "expect": "clarifying_questions"
+      },
+      {
+        "user": "It's mainly that I have 6 direct reports, 3 cross-functional projects, and my boss keeps adding new priorities every week.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "How do I push back on my boss without looking like I can't handle it?",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "Rewrite this more concisely.",
+        "expect": "mechanical_rewrite"
+      }
+    ]
+  },
+  {
+    "name": "topic_shift",
+    "turns": [
+      {
+        "user": "How do I run better 1:1 meetings with my team?",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "Actually, I have a more urgent issue. One of my reports just told me they're thinking about quitting.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "They said they feel undervalued and that their work isn't visible to leadership.",
+        "expect": "direct_guidance"
+      }
+    ]
+  },
+  {
+    "name": "follow_up_depth",
+    "turns": [
+      {
+        "user": "I've been promoted to director and I'm not sure how to shift my leadership style.",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "What specifically should I stop doing that I was doing as a manager?",
+        "expect": "direct_guidance"
+      },
+      {
+        "user": "How do I build relationships with my new peers on the leadership team?",
+        "expect": "direct_guidance"
+      }
+    ]
+  }
+]

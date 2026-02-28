@@ -1,0 +1,58 @@
+{
+  "should_search": [
+    {
+      "id": "toxic_high_performer",
+      "input": "How should I handle a toxic high performer?"
+    },
+    {
+      "id": "psychological_safety_research",
+      "input": "What does research say about psychological safety in teams?"
+    },
+    {
+      "id": "executive_presence",
+      "input": "How do I build executive presence?"
+    },
+    {
+      "id": "cross_functional_collab",
+      "input": "I need to improve cross-functional collaboration between engineering and product."
+    },
+    {
+      "id": "difficult_conversation",
+      "input": "How do I have a difficult conversation with someone who gets defensive?"
+    },
+    {
+      "id": "burnout_prevention",
+      "input": "What are evidence-based approaches to preventing burnout in my team?"
+    },
+    {
+      "id": "first_90_days",
+      "input": "I just started as a new VP. What should I focus on in my first 90 days?"
+    },
+    {
+      "id": "feedback_culture",
+      "input": "How do I build a culture of candid feedback on my team?"
+    }
+  ],
+  "should_not_search": [
+    {
+      "id": "rewrite_email",
+      "input": "Rewrite this email to be more direct: 'Hi team, I was wondering if maybe we could possibly consider looking into the option of potentially shifting our timeline a bit if that works for everyone?'"
+    },
+    {
+      "id": "summarize_discussion",
+      "input": "Summarize what we discussed."
+    },
+    {
+      "id": "say_concisely",
+      "input": "Say that more concisely."
+    },
+    {
+      "id": "shorten_feedback",
+      "input": "Make this feedback shorter: 'I wanted to share some thoughts on how the presentation went. Overall I think there were some areas that went well but there were also some areas where I think we could improve going forward if we want to be more effective.'"
+    },
+    {
+      "id": "rephrase_slack",
+      "input": "Rephrase this for a Slack message: 'I need to inform you that the deliverable originally scheduled for Friday will need to be postponed to the following Wednesday due to unforeseen technical complications.'"
+    }
+  ]
+}

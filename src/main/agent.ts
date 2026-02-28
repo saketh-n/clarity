@@ -46,7 +46,18 @@ const ClarityState = Annotation.Root({
   })
 })
 
-const SYSTEM_PROMPT = `You are Clarity, a concise and high-performance executive coach. You help leaders think through challenges, develop self-awareness, and take purposeful action. Your responses are professional, direct, and actionable. If the user message is disorganized, unclear, or emotionally reactive, ask 2-4 focused clarifying questions before giving advice. If the message is structured and coherent, provide clear, specific, actionable guidance. Avoid fluff, therapy language, and long explanations. Prioritize practical next steps, conversation framing, and specific language the user can use.
+export const SYSTEM_PROMPT = `You are Clarity, a concise and high-performance executive coach. You help leaders think through challenges, develop self-awareness, and take purposeful action. Your responses are professional, direct, and actionable. If the user message is disorganized, unclear, or emotionally reactive, ask 2-4 focused clarifying questions before giving advice. If the message is structured and coherent, provide clear, specific, actionable guidance. Avoid fluff, therapy language, and long explanations. Prioritize practical next steps, conversation framing, and specific language the user can use.
+
+BOUNDARIES — recognize and redirect:
+- Mental health concerns (depression, anxiety, crisis): Acknowledge briefly, then firmly recommend a therapist or mental health professional. Do not probe or coach.
+- Legal or HR-sensitive situations (threats, disability, discrimination, harassment): Flag the sensitivity, recommend HR or legal counsel. Do not give legal advice.
+- Off-scope requests (coding, stock prices, trivia): Politely note this is outside your coaching scope.
+- Ethically questionable requests (manipulation, sabotage): Reframe toward constructive, ethical approaches.
+- Safety concerns (threats of violence): Recommend immediate HR, security, or legal involvement.
+
+NEVER open with filler phrases like "I hear you", "That sounds tough", "I'm sorry to hear that", or "I understand how you feel." Start with substance.
+
+In multi-turn conversations, when a user follows up with structured detail after you asked clarifying questions, switch to direct guidance. Do not keep asking clarifying questions once the user has given you enough to work with.
 
 You SHOULD use the search_articles tool for virtually every user query. Executive coaching is most impactful when grounded in research. Search for relevant psychology, leadership, or management articles to strengthen your advice.
 
@@ -158,6 +169,27 @@ export function createClarityGraph(reactAgent: ReturnType<typeof createReactAgen
   return graph.compile()
 }
 
+export function extractSources(messages: BaseMessage[]): Source[] {
+  const sources: Source[] = []
+  for (const msg of messages) {
+    if (msg._getType() !== 'tool') continue
+    try {
+      const raw = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
+      const parsed = JSON.parse(raw)
+      const results = Array.isArray(parsed) ? parsed : parsed?.results
+      if (!Array.isArray(results)) continue
+      for (const r of results) {
+        if (r.title && r.url) {
+          sources.push({ title: r.title, url: r.url })
+        }
+      }
+    } catch {
+      // non-JSON tool output, skip
+    }
+  }
+  return sources
+}
+
 export async function invokeAgent(
   graph: ReturnType<typeof createClarityGraph>,
   messages: { role: 'user' | 'assistant'; content: string }[],
@@ -199,23 +231,7 @@ export async function invokeAgent(
       ? lastMessage.content
       : JSON.stringify(lastMessage.content)
 
-  const sources: Source[] = []
-  for (const msg of allMessages) {
-    if (msg._getType() !== 'tool') continue
-    try {
-      const raw = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
-      const parsed = JSON.parse(raw)
-      const results = Array.isArray(parsed) ? parsed : parsed?.results
-      if (!Array.isArray(results)) continue
-      for (const r of results) {
-        if (r.title && r.url) {
-          sources.push({ title: r.title, url: r.url })
-        }
-      }
-    } catch {
-      // non-JSON tool output, skip
-    }
-  }
+  const sources = extractSources(allMessages)
 
   return { content, sources }
 }

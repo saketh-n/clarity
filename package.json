@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "start": "electron-vite preview"
+    "start": "electron-vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:eval": "vitest run --config vitest.eval.config.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +28,8 @@
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@langchain/core": "^1.1.27",

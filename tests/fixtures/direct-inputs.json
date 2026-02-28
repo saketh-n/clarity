@@ -1,0 +1,42 @@
+[
+  {
+    "id": "feedback_missed_deadlines",
+    "input": "I need to give a direct report feedback on consistently missed deadlines without demotivating them."
+  },
+  {
+    "id": "effective_weekly_meetings",
+    "input": "How do I run a more effective weekly team meeting? Mine tend to run long with no clear outcomes."
+  },
+  {
+    "id": "board_presentation",
+    "input": "I'm preparing for a board presentation on Q3 results. What should I focus on to make the strongest impression?"
+  },
+  {
+    "id": "promotion_denial",
+    "input": "I need to tell a high performer they're not getting promoted this cycle. They expect it. How do I structure that conversation?"
+  },
+  {
+    "id": "delegation_framework",
+    "input": "I'm a VP and still too involved in operational details. What framework should I use to decide what to delegate versus keep?"
+  },
+  {
+    "id": "new_manager_credibility",
+    "input": "I'm a first-time manager and need to establish credibility with a team of people who are more experienced than me. What should I do in my first 30 days?"
+  },
+  {
+    "id": "stakeholder_alignment",
+    "input": "Two key stakeholders want different outcomes from the same project. How do I align them without escalating?"
+  },
+  {
+    "id": "executive_presence",
+    "input": "My skip-level told me I need to develop more executive presence. What specifically should I work on?"
+  },
+  {
+    "id": "remote_engagement",
+    "input": "I have a remote employee whose participation and output have dropped. How should I approach the conversation?"
+  },
+  {
+    "id": "peer_credit_taking",
+    "input": "A peer has been taking credit for my team's work in executive meetings. How do I address this professionally?"
+  }
+]

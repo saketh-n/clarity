@@ -1,0 +1,52 @@
+[
+  {
+    "id": "vague_frustration",
+    "input": "I'm just so frustrated with everything at work right now.",
+    "why": "Emotionally reactive, no specific problem stated"
+  },
+  {
+    "id": "everything_falling_apart",
+    "input": "My team, my boss, the deadlines — it's all falling apart and I don't know what to do.",
+    "why": "Disorganized, multiple vague complaints"
+  },
+  {
+    "id": "ultra_vague",
+    "input": "Things aren't working.",
+    "why": "Extremely vague, no context"
+  },
+  {
+    "id": "emotional_spiral",
+    "input": "I had a terrible meeting and now I'm questioning everything about my leadership.",
+    "why": "Emotionally reactive, catastrophizing"
+  },
+  {
+    "id": "stream_of_consciousness",
+    "input": "There's this person and they keep doing this thing and it's really getting to me and I think maybe I should say something but I don't know.",
+    "why": "Disorganized stream of consciousness"
+  },
+  {
+    "id": "overwhelmed_no_specifics",
+    "input": "I feel like I'm drowning. Everything is too much.",
+    "why": "Emotional, no actionable specifics"
+  },
+  {
+    "id": "vague_team_issue",
+    "input": "My team just doesn't get it.",
+    "why": "Vague complaint with no detail"
+  },
+  {
+    "id": "mixed_signals",
+    "input": "I keep getting mixed signals from everyone around me and I don't know who to trust or what to focus on anymore.",
+    "why": "Disorganized, emotional, multiple undefined issues"
+  },
+  {
+    "id": "imposter_syndrome_raw",
+    "input": "I don't think I'm cut out for this role. Everyone else seems to know what they're doing.",
+    "why": "Emotionally reactive, self-doubt without specifics"
+  },
+  {
+    "id": "relationship_mess",
+    "input": "There's so much politics happening and I'm caught in the middle of it all. I can't even think straight.",
+    "why": "Emotional, vague reference to politics without specifics"
+  }
+]
